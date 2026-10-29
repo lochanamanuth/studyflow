@@ -1,0 +1,2027 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyFlow </title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti for Task Celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.7);
+    }
+    .active-nav-tab {
+      background-color: #4f46e5 !important;
+      color: #ffffff !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans transition-colors duration-200 antialiased selection:bg-brand-500 selection:text-white pb-16">
+
+  <!-- Toast Notification Box -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/20 text-sm font-medium">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toast-msg">Action completed!</span>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+      
+      <!-- Logo & Universal Badge -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/25">
+          <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">StudyFlow</h1>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Any Subject • Any Stream • 100% Client-Side</p>
+        </div>
+      </div>
+
+      <!-- Live Clock & Date -->
+      <div class="hidden md:flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+        <i data-lucide="clock" class="w-3.5 h-3.5 text-brand-500"></i>
+        <span id="live-time">--:--</span>
+        <span class="text-slate-300 dark:text-slate-600">|</span>
+        <span id="live-date">Today</span>
+      </div>
+
+      <!-- Action Controls -->
+      <div class="flex items-center gap-2">
+        <!-- Streak Counter -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-700 dark:text-amber-400 font-bold text-xs" title="Daily Active Study Streak">
+          <i data-lucide="flame" class="w-4 h-4 fill-amber-500 text-amber-500 animate-pulse"></i>
+          <span id="streak-count">1</span> <span class="hidden sm:inline font-normal">Day Streak</span>
+        </div>
+
+        <!-- Custom Subject Board Trigger -->
+        <button onclick="toggleModal('subject-modal', true)" class="px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="palette" class="w-3.5 h-3.5 text-brand-500"></i>
+          <span class="hidden sm:inline">Subjects</span>
+        </button>
+
+
+        
+
+        <!-- Backup & Restore Modal Trigger -->
+        <button onclick="toggleModal('backup-modal', true)" class="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition" title="Backup & Restore">
+          <i data-lucide="hard-drive" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Dark/Light Theme Toggle -->
+        <button id="theme-toggle" class="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition" title="Toggle Theme">
+          <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+        </button>
+        
+        <!-- For Mobile Phone -->
+        <a href="google.com">
+        <button class="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition" title="Download For Mobile">
+          App
+        </button></a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Section Navigation Pills (Tabs) -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="active-nav-tab px-4 py-2 rounded-xl flex items-center gap-2 transition shrink-0 bg-slate-200 dark:bg-slate-800">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview & Planner
+      </button>
+      <button onclick="switchTab('timetable')" id="tab-timetable" class="px-4 py-2 rounded-xl flex items-center gap-2 transition shrink-0 bg-slate-200/60 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800">
+        <i data-lucide="calendar-range" class="w-4 h-4"></i> Weekly Routine Timetable
+      </button>
+      <button onclick="switchTab('notes')" id="tab-notes" class="px-4 py-2 rounded-xl flex items-center gap-2 transition shrink-0 bg-slate-200/60 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800">
+        <i data-lucide="file-text" class="w-4 h-4"></i> Formula & Revision Bank
+      </button>
+    </div>
+
+    <!-- ========================================================
+         VIEW 1: DASHBOARD & PLANNER
+         ======================================================== -->
+    <div id="view-dashboard" class="space-y-6">
+
+      <!-- Exam Countdowns & Daily Motivation Banner -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Motivation Quote Card (7 Cols) -->
+        <div class="lg:col-span-7 bg-gradient-to-r from-brand-600 via-indigo-600 to-indigo-800 rounded-3xl p-6 text-white shadow-xl shadow-brand-500/10 relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute -right-12 -bottom-12 w-52 h-52 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white/90 text-[11px] font-bold mb-3 tracking-wide uppercase">
+              <i data-lucide="sparkles" class="w-3 h-3 text-amber-300"></i> Daily Study Mindset
+            </div>
+            <p id="quote-text" class="text-base sm:text-xl font-bold leading-relaxed tracking-tight">"Consistent action over time builds unshakable confidence."</p>
+            <p id="quote-author" class="text-xs text-indigo-200 mt-2 font-medium">— StudyFlow Mentor</p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-white/15 flex flex-wrap items-center justify-between gap-2 text-xs text-indigo-100">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-300"></i> 100% Private • Stored securely on your device
+            </span>
+            <button onclick="refreshQuote()" class="hover:text-white transition flex items-center gap-1 font-semibold text-xs">
+              <i data-lucide="refresh-cw" class="w-3 h-3"></i> Next Quote
+            </button>
+          </div>
+        </div>
+
+        <!-- Target Countdowns Widget (5 Cols) -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950 text-rose-600 flex items-center justify-center">
+                <i data-lucide="hourglass" class="w-4 h-4"></i>
+              </div>
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm">Target / Exam Countdown</h3>
+            </div>
+            <button onclick="toggleModal('event-modal', true)" class="text-xs text-brand-600 dark:text-brand-400 font-bold hover:underline flex items-center gap-1">
+              <i data-lucide="plus" class="w-3 h-3"></i> Add Target
+            </button>
+          </div>
+
+          <!-- Dynamic Countdowns List -->
+          <div id="countdowns-container" class="space-y-2.5 max-h-44 overflow-y-auto pr-1">
+            <!-- Dynamic countdown cards -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Metrics Counters -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pending Tasks</p>
+            <p id="stat-pending-tasks" class="text-xl font-extrabold text-slate-900 dark:text-white leading-tight">0</p>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Events Today</p>
+            <p id="stat-today-events" class="text-xl font-extrabold text-slate-900 dark:text-white leading-tight">0</p>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <i data-lucide="clock-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Study Focus</p>
+            <p id="stat-focus-time" class="text-xl font-extrabold text-slate-900 dark:text-white leading-tight">0m</p>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <i data-lucide="book-open" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Configured Subjects</p>
+            <p id="stat-subject-count" class="text-xl font-extrabold text-slate-900 dark:text-white leading-tight">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Workspace Grid: Tasks + Timer + Calendar -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT COLUMN: Advanced Task Tracker (7 Cols) -->
+        <section class="lg:col-span-7 space-y-6">
+
+          <!-- Task Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+                  <i data-lucide="check-square" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h2 class="font-bold text-slate-900 dark:text-white text-base">Study Tasks & Assignments</h2>
+                  <p class="text-xs text-slate-500">Organize and conquer your study goals</p>
+                </div>
+              </div>
+
+              <!-- Subject & Search Filter -->
+              <div class="flex items-center gap-2">
+                <select id="task-filter-subject" onchange="filterTasks()" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs rounded-xl px-2.5 py-1.5 text-slate-800 dark:text-slate-200 focus:outline-none">
+                  <option value="all">🌟 All Subjects</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Task Search Bar -->
+            <div class="relative mb-3">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+              <input type="text" id="task-search-input" oninput="filterTasks()" placeholder="Search your assignments or topics..." class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-brand-500">
+            </div>
+
+            <!-- Add Task Form -->
+            <form id="task-form" onsubmit="handleAddTask(event)" class="space-y-3 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 mb-5">
+              <div class="flex items-center gap-2">
+                <input type="text" id="task-input" required placeholder="What do you need to study, write or solve?" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-800 dark:text-slate-100">
+                <button type="submit" class="shrink-0 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-md shadow-brand-500/20">
+                  <i data-lucide="plus" class="w-4 h-4"></i> Add
+                </button>
+              </div>
+
+              <!-- Subject, Urgency & Date Row -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <select id="task-subject-select" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none">
+                  <!-- Dynamically populated -->
+                </select>
+
+                <select id="task-priority-select" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none">
+                  <option value="urgent">🔥 Urgent Priority</option>
+                  <option value="high">🔴 High Priority</option>
+                  <option value="medium" selected>🟡 Medium Priority</option>
+                  <option value="low">🟢 Low Priority</option>
+                </select>
+
+                <input type="date" id="task-due-date" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none text-xs">
+              </div>
+            </form>
+
+            <!-- Status Filter Tabs -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 text-xs">
+              <div class="flex items-center gap-1.5">
+                <button onclick="setTaskStatusFilter('all')" id="btn-status-all" class="px-3 py-1 rounded-lg font-medium bg-brand-500 text-white transition">All</button>
+                <button onclick="setTaskStatusFilter('pending')" id="btn-status-pending" class="px-3 py-1 rounded-lg font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">To-Do</button>
+                <button onclick="setTaskStatusFilter('completed')" id="btn-status-completed" class="px-3 py-1 rounded-lg font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">Done</button>
+              </div>
+              <span id="task-count-summary" class="text-slate-400 font-medium">0 items</span>
+            </div>
+
+            <!-- Task Items List -->
+            <div id="task-list" class="space-y-2.5 max-h-[460px] overflow-y-auto pr-1 mt-4">
+              <!-- Dynamically populated tasks -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="task-empty-state" class="hidden text-center py-10 px-4">
+              <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                <i data-lucide="check-check" class="w-6 h-6"></i>
+              </div>
+              <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">No tasks here!</p>
+              <p class="text-xs text-slate-400 mt-1">Add a new assignment or chapter review above.</p>
+            </div>
+
+            <!-- Clear Controls -->
+            <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+              <button onclick="clearCompletedTasks()" class="text-rose-500 hover:text-rose-600 transition flex items-center gap-1 font-semibold">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Done Tasks
+              </button>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: Focus Timer with Ambient Sound & Calendar (5 Cols) -->
+        <section class="lg:col-span-5 space-y-6">
+
+          <!-- Pomodoro Focus Engine with Ambient Sound -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm text-center relative overflow-hidden">
+            
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2.5 text-left">
+                <div class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                  <i data-lucide="timer" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-base">Pomodoro Focus Timer</h3>
+                  <p class="text-xs text-slate-500">Deep study sprints & intervals</p>
+                </div>
+              </div>
+
+              <!-- Mode Selector Pills -->
+              <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-semibold">
+                <button onclick="setTimerMode('study')" id="mode-study" class="px-3 py-1 rounded-xl bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-brand-300 transition">25m</button>
+                <button onclick="setTimerMode('short')" id="mode-short" class="px-2.5 py-1 rounded-xl text-slate-500 dark:text-slate-400 transition">5m</button>
+                <button onclick="setTimerMode('long')" id="mode-long" class="px-2.5 py-1 rounded-xl text-slate-500 dark:text-slate-400 transition">15m</button>
+              </div>
+            </div>
+
+            <!-- Subject Tag for current study session -->
+            <div class="flex items-center justify-center gap-2 mb-2 text-xs">
+              <span class="text-slate-400 font-medium">Logging time for:</span>
+              <select id="timer-subject-select" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-slate-700 dark:text-slate-300 text-xs font-semibold focus:outline-none">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <!-- Digital Clock Display -->
+            <div class="my-5">
+              <div id="timer-display" class="font-mono text-5xl sm:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white select-none">
+                25:00
+              </div>
+              <p id="timer-status-text" class="text-xs uppercase tracking-wider font-bold text-rose-500 dark:text-rose-400 mt-2">Ready to Study</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-center gap-3">
+              <button id="timer-start-btn" onclick="toggleTimer()" class="w-36 bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-2xl shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 text-sm transition">
+                <i data-lucide="play" class="w-4 h-4 fill-white"></i> Start Focus
+              </button>
+              <button onclick="resetTimer()" class="p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Reset Timer">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Ambient Sound Generator (Pure Web Audio API - Zero External URL) -->
+            <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5 text-slate-500">
+                <i data-lucide="headphones" class="w-4 h-4 text-brand-500"></i>
+                <span class="font-medium">Ambient Sound:</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="setAmbientSound('none')" id="ambient-btn-none" class="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200">Off</button>
+                <button onclick="setAmbientSound('rain')" id="ambient-btn-rain" class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">🌧️ Rain</button>
+                <button onclick="setAmbientSound('whitenoise')" id="ambient-btn-whitenoise" class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">📻 Waves</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Interactive Study Calendar -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
+            
+            <!-- Month Header -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center">
+                  <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                </div>
+                <h3 id="calendar-month-year" class="font-bold text-slate-900 dark:text-white text-base">Calendar</h3>
+              </div>
+              
+              <div class="flex items-center gap-1">
+                <button onclick="changeMonth(-1)" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button onclick="goToToday()" class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Today</button>
+                <button onclick="changeMonth(1)" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Day names -->
+            <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-400 mb-2">
+              <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+            </div>
+
+            <!-- Calendar Dates Grid -->
+            <div id="calendar-days" class="grid grid-cols-7 gap-1 text-xs">
+              <!-- Dynamically populated dates -->
+            </div>
+
+            <!-- Selected Day Events Schedule -->
+            <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div class="flex items-center justify-between mb-3">
+                <span id="selected-date-label" class="text-xs font-bold text-slate-900 dark:text-white">Schedule for Today</span>
+                <button onclick="toggleModal('event-modal', true)" class="text-xs text-brand-600 dark:text-brand-400 hover:underline font-bold flex items-center gap-1">
+                  <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Event
+                </button>
+              </div>
+
+              <div id="selected-day-events" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================
+         VIEW 2: WEEKLY ROUTINE & CLASS TIMETABLE
+         ======================================================== -->
+    <div id="view-timetable" class="hidden space-y-6">
+      
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-600 flex items-center justify-center">
+              <i data-lucide="calendar-range" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-900 dark:text-white text-base">Weekly Class & Study Schedule</h2>
+              <p class="text-xs text-slate-500">Map your school periods, tuition slots and self-study sessions</p>
+            </div>
+          </div>
+
+          <button onclick="toggleModal('timetable-modal', true)" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm w-fit">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Schedule Slot
+          </button>
+        </div>
+
+        <!-- 7-Day Timetable Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-3" id="timetable-grid">
+          <!-- Populated dynamically for Monday to Sunday -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================
+         VIEW 3: FORMULA & REVISION SCRATCHPAD BANK
+         ======================================================== -->
+    <div id="view-notes" class="hidden space-y-6">
+
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <i data-lucide="book-bookmark" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-900 dark:text-white text-base">Formulas, Definitions & Revision Cheatsheet</h2>
+              <p class="text-xs text-slate-500">Fast definitions, core formulas, code snippets & key points</p>
+            </div>
+          </div>
+
+          <button onclick="toggleModal('note-modal', true)" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm w-fit">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add New Card
+          </button>
+        </div>
+
+        <!-- Search / Filter Notes by Subject -->
+        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+          <input type="text" id="note-search-input" oninput="renderNotes()" placeholder="Search formulas or keywords..." class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-100 focus:outline-none">
+          <select id="note-filter-subject" onchange="renderNotes()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 focus:outline-none">
+            <option value="all">🌟 All Subjects</option>
+          </select>
+        </div>
+
+        <!-- Note Cards Grid -->
+        <div id="notes-bank-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated cards -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================
+       MODAL 1: Custom Subject & Stream Manager
+       ======================================================== -->
+  <div id="subject-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 flex items-center justify-center">
+            <i data-lucide="palette" class="w-4 h-4"></i>
+          </div>
+          <h4 class="font-bold text-slate-900 dark:text-white text-base">Universal Subject & Stream Board</h4>
+        </div>
+        <button onclick="toggleModal('subject-modal', false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500 leading-relaxed">
+        StudyFlow is universal: Add ANY subject, module, language or topic (e.g., Combined Maths, Chemistry, Accounting, History, ICT, English Literature, Medicine, etc.).
+      </p>
+
+      <!-- Add Subject Form -->
+      <form onsubmit="handleAddSubject(event)" class="flex flex-col sm:flex-row gap-2 pt-1">
+        <input type="text" id="new-subject-name" required placeholder="Subject Name (e.g. Combined Maths / Accounting)" class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 focus:outline-none">
+        
+        <select id="new-subject-color" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 focus:outline-none">
+          <option value="indigo">Indigo / Blue</option>
+          <option value="emerald">Emerald / Green</option>
+          <option value="amber">Amber / Yellow</option>
+          <option value="rose">Rose / Red</option>
+          <option value="purple">Purple / Violet</option>
+          <option value="cyan">Cyan / Teal</option>
+        </select>
+
+        <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition">
+          Add
+        </button>
+      </form>
+
+      <!-- Active Subjects Pills -->
+      <div class="pt-2">
+        <p class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Active Subjects List:</p>
+        <div id="subject-chips-list" class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+        <button onclick="toggleModal('subject-modal', false)" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 2: Add Event / Exam Countdown
+       ======================================================== -->
+  <div id="event-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between">
+        <h4 class="font-bold text-slate-900 dark:text-white text-base">Schedule Event / Exam Target</h4>
+        <button onclick="toggleModal('event-modal', false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveEvent(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Target Date</label>
+          <input type="date" id="event-date-input" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Title / Exam Name</label>
+          <input type="text" id="event-title-input" placeholder="e.g. Combined Maths Term Paper / Biology Unit Test" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Subject</label>
+          <select id="event-subject-select" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Category</label>
+          <select id="event-type-input" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+            <option value="exam">🚨 Examination / Target Test</option>
+            <option value="assignment">📑 Assignment / Homework Submission</option>
+            <option value="class">🏫 Tuition / Class / Practical Session</option>
+            <option value="revision">📖 Revision Sprint</option>
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="toggleModal('event-modal', false)" class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white">Save Target</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 3: Add Timetable Slot
+       ======================================================== -->
+  <div id="timetable-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between">
+        <h4 class="font-bold text-slate-900 dark:text-white text-base">Add Weekly Routine Slot</h4>
+        <button onclick="toggleModal('timetable-modal', false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveTimetableSlot(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Day of the Week</label>
+          <select id="tt-day-select" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Time Range</label>
+          <input type="text" id="tt-time-input" placeholder="e.g. 08:00 AM - 10:00 AM" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Subject</label>
+          <select id="tt-subject-select" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Slot Description / Location</label>
+          <input type="text" id="tt-desc-input" placeholder="e.g. Theory Class / Paper Class / Library Revision" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="toggleModal('timetable-modal', false)" class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white">Save Slot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 4: Add Formula / Key Note Card
+       ======================================================== -->
+  <div id="note-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between">
+        <h4 class="font-bold text-slate-900 dark:text-white text-base">Add Formula or Note Card</h4>
+        <button onclick="toggleModal('note-modal', false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveNote(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Card Title / Topic</label>
+          <input type="text" id="note-title-input" placeholder="e.g. Newton's Laws / Income Statement / Python Loops" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Subject</label>
+          <select id="note-subject-select" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Content / Formulas / Definitions</label>
+          <textarea id="note-content-input" rows="5" placeholder="Write equations, key rules, short bullet points..." required class="w-full font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-800 dark:text-slate-100 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="toggleModal('note-modal', false)" class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white">Save Card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 5: Local Backup & Restore
+       ======================================================== -->
+  <div id="backup-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between">
+        <h4 class="font-bold text-slate-900 dark:text-white text-base">Local Data Backup & Restore</h4>
+        <button onclick="toggleModal('backup-modal', false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500 leading-relaxed">
+        StudyFlow requires zero accounts or external servers. Your tasks, countdowns, routine timetable, formulas, and streak live directly on this device. You can download a single backup file or restore anytime.
+      </p>
+
+      <div class="space-y-3 pt-2">
+        <button onclick="exportData()" class="w-full py-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition">
+          <i data-lucide="download" class="w-4 h-4 text-brand-500"></i> Export All Data to File (.json)
+        </button>
+
+        <label class="w-full py-3 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition">
+          <i data-lucide="upload" class="w-4 h-4 text-emerald-500"></i> Import Data from File (.json)
+          <input type="file" id="import-file-input" accept=".json" onchange="importData(event)" class="hidden">
+        </label>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+        <button onclick="toggleModal('backup-modal', false)" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION CORE LOGIC -->
+  <script>
+    /* ========================================================
+       LOCALSTORAGE KEYS & CONSTANTS
+       ======================================================== */
+    const KEY_TASKS = 'sf_universal_tasks';
+    const KEY_EVENTS = 'sf_universal_events';
+    const KEY_NOTES = 'sf_universal_notes';
+    const KEY_SUBJECTS = 'sf_universal_subjects';
+    const KEY_TIMETABLE = 'sf_universal_timetable';
+    const KEY_STATS = 'sf_universal_stats';
+    const KEY_STREAK = 'sf_universal_streak';
+    const KEY_THEME = 'sf_universal_theme';
+
+    const quotes = [
+      { text: "Small daily improvements over time lead to stunning exam results.", author: "Robin Sharma" },
+      { text: "The expert in anything was once a beginner who refused to quit.", author: "Helen Hayes" },
+      { text: "Action is the foundational key to all success.", author: "Pablo Picasso" },
+      { text: "You don't have to be extreme, just consistent.", author: "Anonymous" },
+      { text: "Focus on understanding core principles rather than memorizing questions.", author: "StudyFlow Mentor" },
+      { text: "Take one chapter at a time, solve one problem at a time, and finish strong.", author: "Anonymous" }
+    ];
+
+    // Global State
+    let currentTab = 'dashboard';
+    let taskStatusFilter = 'all';
+    let calendarDate = new Date();
+    let selectedDateStr = formatDateKey(new Date());
+
+    // Timer Variables
+    let timerDuration = 25 * 60;
+    let timerRemaining = timerDuration;
+    let timerInterval = null;
+    let timerRunning = false;
+    let currentTimerMode = 'study';
+
+    // Web Audio Synthesizer State
+    let audioCtx = null;
+    let ambientSource = null;
+    let ambientGain = null;
+    let currentAmbientType = 'none';
+
+    /* ========================================================
+       STARTUP LIFECYCLE
+       ======================================================== */
+    window.onload = function() {
+      initTheme();
+      initDefaultSubjects();
+      initStarterData();
+      updateLiveClock();
+      setInterval(updateLiveClock, 1000);
+      initStreak();
+      renderSubjectSelectors();
+      renderTasks();
+      renderCalendar();
+      renderCountdowns();
+      renderTimetable();
+      renderNotes();
+      updateOverviewStats();
+      refreshQuote();
+      lucide.createIcons();
+    };
+
+    /* ========================================================
+       TAB SWITCHER
+       ======================================================== */
+    function switchTab(tab) {
+      currentTab = tab;
+      ['dashboard', 'timetable', 'notes'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        const view = document.getElementById(`view-${t}`);
+        if (t === tab) {
+          btn.className = 'active-nav-tab px-4 py-2 rounded-xl flex items-center gap-2 transition shrink-0 bg-brand-600 text-white';
+          view.classList.remove('hidden');
+        } else {
+          btn.className = 'px-4 py-2 rounded-xl flex items-center gap-2 transition shrink-0 bg-slate-200/60 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300';
+          view.classList.add('hidden');
+        }
+      });
+      lucide.createIcons();
+    }
+
+    /* ========================================================
+       THEME & HELPERS
+       ======================================================== */
+    function initTheme() {
+      const savedTheme = localStorage.getItem(KEY_THEME);
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem(KEY_THEME, isDark ? 'dark' : 'light');
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2500);
+    }
+
+    function toggleModal(modalId, show) {
+      const modal = document.getElementById(modalId);
+      if (show) {
+        modal.classList.remove('hidden');
+        if (modalId === 'event-modal') {
+          document.getElementById('event-date-input').value = selectedDateStr;
+        }
+      } else {
+        modal.classList.add('hidden');
+      }
+      lucide.createIcons();
+    }
+
+    function updateLiveClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateStr = now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+      const timeElem = document.getElementById('live-time');
+      const dateElem = document.getElementById('live-date');
+      if (timeElem) timeElem.textContent = timeStr;
+      if (dateElem) dateElem.textContent = dateStr;
+    }
+
+    function formatDateKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function refreshQuote() {
+      const randomIndex = Math.floor(Math.random() * quotes.length);
+      const q = quotes[randomIndex];
+      document.getElementById('quote-text').textContent = `"${q.text}"`;
+      document.getElementById('quote-author').textContent = `— ${q.author}`;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.innerText = text;
+      return div.innerHTML;
+    }
+
+    /* ========================================================
+       WEB AUDIO API: CHIMES & AMBIENT GENERATOR
+       ======================================================== */
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playChimeSound() {
+      try {
+        const ctx = getAudioContext();
+        const playTone = (freq, start, duration) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime + start);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + start);
+          osc.stop(ctx.currentTime + start + duration);
+        };
+        playTone(523.25, 0.0, 0.25); // C5
+        playTone(659.25, 0.15, 0.25); // E5
+        playTone(783.99, 0.30, 0.5);  // G5
+      } catch (e) {
+        console.warn('Audio interaction requires user activation', e);
+      }
+    }
+
+    function setAmbientSound(type) {
+      const ctx = getAudioContext();
+
+      // Stop previous ambient sound if playing
+      if (ambientSource) {
+        try {
+          ambientSource.stop();
+          ambientSource.disconnect();
+        } catch (e) {}
+        ambientSource = null;
+      }
+
+      currentAmbientType = type;
+      ['none', 'rain', 'whitenoise'].forEach(t => {
+        const btn = document.getElementById(`ambient-btn-${t}`);
+        if (t === type) {
+          btn.className = 'px-2 py-1 rounded-lg text-[11px] font-semibold bg-brand-600 text-white';
+        } else {
+          btn.className = 'px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800';
+        }
+      });
+
+      if (type === 'none') {
+        showToast('Ambient sound off');
+        return;
+      }
+
+      // Synthesize noise buffer
+      const bufferSize = ctx.sampleRate * 2;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        if (type === 'rain') {
+          // Pink-ish / soft rain filtered noise
+          output[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = output[i];
+          output[i] *= 3.5;
+        } else {
+          // Ocean / waves gentle roll
+          output[i] = white * 0.15;
+        }
+      }
+
+      ambientSource = ctx.createBufferSource();
+      ambientSource.buffer = noiseBuffer;
+      ambientSource.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = type === 'rain' ? 'lowpass' : 'bandpass';
+      filter.frequency.setValueAtTime(type === 'rain' ? 800 : 400, ctx.currentTime);
+
+      ambientGain = ctx.createGain();
+      ambientGain.gain.setValueAtTime(0.08, ctx.currentTime);
+
+      ambientSource.connect(filter);
+      filter.connect(ambientGain);
+      ambientGain.connect(ctx.destination);
+      ambientSource.start();
+
+      showToast(`Playing ambient: ${type}`);
+    }
+
+    /* ========================================================
+       SUBJECT BOARD (UNIVERSAL FOR ANY DISCIPLINE)
+       ======================================================== */
+    const colorClasses = {
+      indigo: { bg: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800', badge: 'bg-indigo-500' },
+      emerald: { bg: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800', badge: 'bg-emerald-500' },
+      amber: { bg: 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-amber-200 dark:border-amber-800', badge: 'bg-amber-500' },
+      rose: { bg: 'bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border-rose-200 dark:border-rose-800', badge: 'bg-rose-500' },
+      purple: { bg: 'bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border-purple-200 dark:border-purple-800', badge: 'bg-purple-500' },
+      cyan: { bg: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/70 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800', badge: 'bg-cyan-500' }
+    };
+
+    function initDefaultSubjects() {
+      if (!localStorage.getItem(KEY_SUBJECTS)) {
+        const defaults = [
+          { id: 'sub-1', name: 'Mathematics / Combined Maths', color: 'indigo' },
+          { id: 'sub-2', name: 'Physics / Science', color: 'emerald' },
+          { id: 'sub-3', name: 'Chemistry / Biology', color: 'rose' },
+          { id: 'sub-4', name: 'ICT / Computer Science', color: 'cyan' },
+          { id: 'sub-5', name: 'Accounting / Business', color: 'amber' },
+          { id: 'sub-6', name: 'Languages / Arts', color: 'purple' }
+        ];
+        localStorage.setItem(KEY_SUBJECTS, JSON.stringify(defaults));
+      }
+    }
+
+    function getSubjects() {
+      return JSON.parse(localStorage.getItem(KEY_SUBJECTS)) || [];
+    }
+
+    function saveSubjects(subjects) {
+      localStorage.setItem(KEY_SUBJECTS, JSON.stringify(subjects));
+      renderSubjectSelectors();
+      renderTasks();
+      renderTimetable();
+      renderNotes();
+      updateOverviewStats();
+    }
+
+    function handleAddSubject(e) {
+      e.preventDefault();
+      const nameInput = document.getElementById('new-subject-name');
+      const colorInput = document.getElementById('new-subject-color');
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      const subjects = getSubjects();
+      subjects.push({
+        id: 'sub-' + Date.now(),
+        name: name,
+        color: colorInput.value
+      });
+
+      saveSubjects(subjects);
+      nameInput.value = '';
+      showToast(`Subject "${name}" added!`);
+    }
+
+    function deleteSubject(id) {
+      let subjects = getSubjects();
+      if (subjects.length <= 1) {
+        showToast('Keep at least one subject configured.');
+        return;
+      }
+      subjects = subjects.filter(s => s.id !== id);
+      saveSubjects(subjects);
+      showToast('Subject removed.');
+    }
+
+    function getSubjectColorClass(subjectName) {
+      const subjects = getSubjects();
+      const found = subjects.find(s => s.name === subjectName);
+      if (found && colorClasses[found.color]) {
+        return colorClasses[found.color];
+      }
+      return colorClasses.indigo;
+    }
+
+    function renderSubjectSelectors() {
+      const subjects = getSubjects();
+      const selectors = [
+        document.getElementById('task-subject-select'),
+        document.getElementById('event-subject-select'),
+        document.getElementById('tt-subject-select'),
+        document.getElementById('note-subject-select'),
+        document.getElementById('timer-subject-select')
+      ];
+
+      const buildOptions = (includeAll = false) => {
+        let html = includeAll ? `<option value="all">🌟 All Subjects</option>` : '';
+        subjects.forEach(s => {
+          html += `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`;
+        });
+        return html;
+      };
+
+      selectors.forEach(sel => {
+        if (sel) sel.innerHTML = buildOptions(false);
+      });
+
+      // Filter selectors with "All" option
+      const filterTasksSel = document.getElementById('task-filter-subject');
+      const filterNotesSel = document.getElementById('note-filter-subject');
+
+      if (filterTasksSel) {
+        const curr = filterTasksSel.value || 'all';
+        filterTasksSel.innerHTML = buildOptions(true);
+        filterTasksSel.value = curr;
+      }
+      if (filterNotesSel) {
+        const curr = filterNotesSel.value || 'all';
+        filterNotesSel.innerHTML = buildOptions(true);
+        filterNotesSel.value = curr;
+      }
+
+      // Subject pills inside modal
+      const chipsContainer = document.getElementById('subject-chips-list');
+      if (chipsContainer) {
+        chipsContainer.innerHTML = '';
+        subjects.forEach(s => {
+          const cStyle = colorClasses[s.color] || colorClasses.indigo;
+          const chip = document.createElement('div');
+          chip.className = `flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border ${cStyle.bg}`;
+          chip.innerHTML = `
+            <span>${escapeHtml(s.name)}</span>
+            <button onclick="deleteSubject('${s.id}')" class="hover:text-rose-600 transition ml-1" title="Delete">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          `;
+          chipsContainer.appendChild(chip);
+        });
+      }
+
+      lucide.createIcons();
+    }
+
+    /* ========================================================
+       STARTER DATA INITIALIZER
+       ======================================================== */
+    function initStarterData() {
+      if (!localStorage.getItem(KEY_TASKS)) {
+        const starter = [
+          {
+            id: 't-1',
+            title: 'Complete past paper exercises & chapter review',
+            subject: 'Mathematics / Combined Maths',
+            priority: 'urgent',
+            dueDate: formatDateKey(new Date()),
+            completed: false
+          },
+          {
+            id: 't-2',
+            title: 'Summarize key definitions & mechanics formulas',
+            subject: 'Physics / Science',
+            priority: 'high',
+            dueDate: formatDateKey(new Date(Date.now() + 86400000)),
+            completed: false
+          },
+          {
+            id: 't-3',
+            title: 'Read database normalization notes',
+            subject: 'ICT / Computer Science',
+            priority: 'medium',
+            dueDate: '',
+            completed: true
+          }
+        ];
+        localStorage.setItem(KEY_TASKS, JSON.stringify(starter));
+      }
+
+      if (!localStorage.getItem(KEY_EVENTS)) {
+        const todayStr = formatDateKey(new Date());
+        const targetDate1 = formatDateKey(new Date(Date.now() + 86400000 * 5));
+        const targetDate2 = formatDateKey(new Date(Date.now() + 86400000 * 14));
+        const starterEvents = [
+          { id: 'ev-1', date: todayStr, title: 'Term Review Assessment', subject: 'Mathematics / Combined Maths', type: 'exam' },
+          { id: 'ev-2', date: targetDate1, title: 'Final Unit Physics Exam', subject: 'Physics / Science', type: 'exam' },
+          { id: 'ev-3', date: targetDate2, title: 'ICT Project Submission', subject: 'ICT / Computer Science', type: 'assignment' }
+        ];
+        localStorage.setItem(KEY_EVENTS, JSON.stringify(starterEvents));
+      }
+
+      if (!localStorage.getItem(KEY_TIMETABLE)) {
+        const starterTimetable = [
+          { id: 'tt-1', day: 'Monday', time: '08:00 AM - 10:00 AM', subject: 'Mathematics / Combined Maths', desc: 'Pure Maths Theory' },
+          { id: 'tt-2', day: 'Tuesday', time: '03:30 PM - 05:30 PM', subject: 'Physics / Science', desc: 'Mechanics & Practical' },
+          { id: 'tt-3', day: 'Wednesday', time: '07:00 PM - 09:00 PM', subject: 'ICT / Computer Science', desc: 'Coding & Past Papers' },
+          { id: 'tt-4', day: 'Saturday', time: '08:30 AM - 12:30 PM', subject: 'Chemistry / Biology', desc: 'Tuition Class' }
+        ];
+        localStorage.setItem(KEY_TIMETABLE, JSON.stringify(starterTimetable));
+      }
+
+      if (!localStorage.getItem(KEY_NOTES)) {
+        const starterNotes = [
+          {
+            id: 'n-1',
+            title: 'Equations of Linear Motion',
+            subject: 'Physics / Science',
+            content: '• v = u + at\n• s = ut + ½at²\n• v² = u² + 2as\n• s = ((u + v) / 2) × t'
+          },
+          {
+            id: 'n-2',
+            title: 'Quadratic Roots Formula',
+            subject: 'Mathematics / Combined Maths',
+            content: 'x = (-b ± √(b² - 4ac)) / (2a)\nDiscriminant Δ = b² - 4ac\n• Δ > 0: Real & distinct\n• Δ = 0: Real & equal\n• Δ < 0: Complex roots'
+          }
+        ];
+        localStorage.setItem(KEY_NOTES, JSON.stringify(starterNotes));
+      }
+
+      if (!localStorage.getItem(KEY_STATS)) {
+        localStorage.setItem(KEY_STATS, JSON.stringify({ totalFocusMinutes: 50 }));
+      }
+    }
+
+    function loadSampleData() {
+      initStarterData();
+      renderSubjectSelectors();
+      renderTasks();
+      renderCalendar();
+      renderCountdowns();
+      renderTimetable();
+      renderNotes();
+      updateOverviewStats();
+      showToast('Demo data loaded successfully!');
+    }
+
+    /* ========================================================
+       STUDY STREAK ENGINE
+       ======================================================== */
+    function initStreak() {
+      const today = formatDateKey(new Date());
+      let streakData = JSON.parse(localStorage.getItem(KEY_STREAK)) || { streak: 1, lastActiveDate: today };
+
+      const lastDate = new Date(streakData.lastActiveDate);
+      const currDate = new Date(today);
+      const diffTime = Math.abs(currDate - lastDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        streakData.streak += 1;
+        streakData.lastActiveDate = today;
+      } else if (diffDays > 1) {
+        streakData.streak = 1;
+        streakData.lastActiveDate = today;
+      }
+
+      localStorage.setItem(KEY_STREAK, JSON.stringify(streakData));
+      document.getElementById('streak-count').textContent = streakData.streak;
+    }
+
+    /* ========================================================
+       TASK MANAGEMENT
+       ======================================================== */
+    function getTasks() {
+      return JSON.parse(localStorage.getItem(KEY_TASKS)) || [];
+    }
+
+    function saveTasks(tasks) {
+      localStorage.setItem(KEY_TASKS, JSON.stringify(tasks));
+      renderTasks();
+      updateOverviewStats();
+    }
+
+    function handleAddTask(e) {
+      e.preventDefault();
+      const input = document.getElementById('task-input');
+      const subject = document.getElementById('task-subject-select').value;
+      const priority = document.getElementById('task-priority-select').value;
+      const dueDate = document.getElementById('task-due-date').value;
+
+      const title = input.value.trim();
+      if (!title) return;
+
+      const newTask = {
+        id: 't-' + Date.now(),
+        title: title,
+        subject: subject,
+        priority: priority,
+        dueDate: dueDate,
+        completed: false
+      };
+
+      const tasks = getTasks();
+      tasks.unshift(newTask);
+      saveTasks(tasks);
+
+      input.value = '';
+      showToast('Task added!');
+    }
+
+    function toggleTask(id) {
+      const tasks = getTasks();
+      const target = tasks.find(t => t.id === id);
+      if (target) {
+        target.completed = !target.completed;
+        saveTasks(tasks);
+        if (target.completed) {
+          playChimeSound();
+          if (window.confetti) {
+            window.confetti({
+              particleCount: 70,
+              spread: 60,
+              origin: { y: 0.8 }
+            });
+          }
+          showToast('Completed! Great job.');
+        }
+      }
+    }
+
+    function deleteTask(id) {
+      let tasks = getTasks();
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks(tasks);
+      showToast('Task deleted.');
+    }
+
+    function clearCompletedTasks() {
+      let tasks = getTasks();
+      const prevLen = tasks.length;
+      tasks = tasks.filter(t => !t.completed);
+      if (tasks.length === prevLen) {
+        showToast('No completed tasks to clear.');
+        return;
+      }
+      saveTasks(tasks);
+      showToast('Cleared finished tasks.');
+    }
+
+    function setTaskStatusFilter(status) {
+      taskStatusFilter = status;
+      ['all', 'pending', 'completed'].forEach(s => {
+        const btn = document.getElementById(`btn-status-${s}`);
+        if (s === status) {
+          btn.className = 'px-3 py-1 rounded-lg font-medium bg-brand-500 text-white transition';
+        } else {
+          btn.className = 'px-3 py-1 rounded-lg font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition';
+        }
+      });
+      renderTasks();
+    }
+
+    function filterTasks() {
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const tasks = getTasks();
+      const subjectFilter = document.getElementById('task-filter-subject')?.value || 'all';
+      const searchQuery = (document.getElementById('task-search-input')?.value || '').toLowerCase().trim();
+      const taskList = document.getElementById('task-list');
+      const emptyState = document.getElementById('task-empty-state');
+      taskList.innerHTML = '';
+
+      let filtered = tasks.filter(t => {
+        if (subjectFilter !== 'all' && t.subject !== subjectFilter) return false;
+        if (taskStatusFilter === 'pending' && t.completed) return false;
+        if (taskStatusFilter === 'completed' && !t.completed) return false;
+        if (searchQuery && !t.title.toLowerCase().includes(searchQuery)) return false;
+        return true;
+      });
+
+      document.getElementById('task-count-summary').textContent = `${filtered.length} items`;
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      const priorityBadges = {
+        urgent: 'bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border-rose-300',
+        high: 'bg-orange-100 text-orange-800 dark:bg-orange-950/70 dark:text-orange-300 border-orange-300',
+        medium: 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-amber-300',
+        low: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-300'
+      };
+
+      filtered.forEach(task => {
+        const item = document.createElement('div');
+        const sColor = getSubjectColorClass(task.subject);
+        item.className = `p-3 rounded-2xl border transition flex items-center justify-between gap-3 ${task.completed ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-800 opacity-60' : 'bg-white dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/80 shadow-sm'}`;
+
+        item.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <button onclick="toggleTask('${task.id}')" class="shrink-0 w-6 h-6 rounded-lg border flex items-center justify-center transition ${task.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600 hover:border-brand-500'}">
+              ${task.completed ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+            </button>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold truncate ${task.completed ? 'line-through text-slate-400' : 'text-slate-800 dark:text-slate-100'}">${escapeHtml(task.title)}</p>
+              <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${sColor.bg}">${escapeHtml(task.subject)}</span>
+                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md border ${priorityBadges[task.priority] || priorityBadges.medium}">${task.priority.toUpperCase()}</span>
+                ${task.dueDate ? `<span class="text-[11px] text-slate-400 flex items-center gap-1 ml-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${task.dueDate}</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <button onclick="deleteTask('${task.id}')" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg transition" title="Delete Task">
+            <i data-lucide="trash" class="w-4 h-4"></i>
+          </button>
+        `;
+        taskList.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    /* ========================================================
+       POMODORO TIMER WITH PERSISTENT LOGGING
+       ======================================================== */
+    function setTimerMode(mode) {
+      currentTimerMode = mode;
+      if (timerRunning) toggleTimer();
+
+      ['study', 'short', 'long'].forEach(m => {
+        const btn = document.getElementById(`mode-${m}`);
+        if (m === mode) {
+          btn.className = 'px-3 py-1 rounded-xl bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-brand-300 transition font-semibold';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-xl text-slate-500 dark:text-slate-400 transition font-semibold';
+        }
+      });
+
+      if (mode === 'study') timerDuration = 25 * 60;
+      else if (mode === 'short') timerDuration = 5 * 60;
+      else if (mode === 'long') timerDuration = 15 * 60;
+
+      timerRemaining = timerDuration;
+      updateTimerDisplay();
+      document.getElementById('timer-status-text').textContent = mode === 'study' ? 'Ready to Study' : 'Rest & Recharge';
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timerRemaining / 60);
+      const seconds = timerRemaining % 60;
+      document.getElementById('timer-display').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+      getAudioContext(); // Resume audio on user action
+      const btn = document.getElementById('timer-start-btn');
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-white"></i> Resume`;
+        document.getElementById('timer-status-text').textContent = 'Paused';
+      } else {
+        timerRunning = true;
+        btn.innerHTML = `<i data-lucide="pause" class="w-4 h-4 fill-white"></i> Pause`;
+        document.getElementById('timer-status-text').textContent = currentTimerMode === 'study' ? 'Sprint In Progress...' : 'Resting...';
+        
+        timerInterval = setInterval(() => {
+          if (timerRemaining > 0) {
+            timerRemaining--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            playChimeSound();
+            if (currentTimerMode === 'study') {
+              recordFocusSession(Math.round(timerDuration / 60));
+              showToast('Pomodoro completed! Fantastic dedication.');
+              setTimerMode('short');
+            } else {
+              showToast('Break finished! Ready for next session?');
+              setTimerMode('study');
+            }
+          }
+        }, 1000);
+      }
+      lucide.createIcons();
+    }
+
+    function resetTimer() {
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+      }
+      setTimerMode(currentTimerMode);
+      document.getElementById('timer-start-btn').innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-white"></i> Start Focus`;
+      lucide.createIcons();
+    }
+
+    function recordFocusSession(minutes) {
+      let stats = JSON.parse(localStorage.getItem(KEY_STATS)) || { totalFocusMinutes: 0 };
+      stats.totalFocusMinutes = (stats.totalFocusMinutes || 0) + minutes;
+      localStorage.setItem(KEY_STATS, JSON.stringify(stats));
+      updateOverviewStats();
+    }
+
+    /* ========================================================
+       COUNTDOWN CARDS ENGINE
+       ======================================================== */
+    function getEvents() {
+      return JSON.parse(localStorage.getItem(KEY_EVENTS)) || [];
+    }
+
+    function saveEvents(events) {
+      localStorage.setItem(KEY_EVENTS, JSON.stringify(events));
+      renderCalendar();
+      renderCountdowns();
+      updateOverviewStats();
+    }
+
+    function renderCountdowns() {
+      const events = getEvents();
+      const container = document.getElementById('countdowns-container');
+      container.innerHTML = '';
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Sort upcoming events
+      const upcoming = events
+        .map(ev => {
+          const evDate = new Date(ev.date + 'T00:00:00');
+          const diffDays = Math.ceil((evDate - today) / (1000 * 60 * 60 * 24));
+          return { ...ev, diffDays };
+        })
+        .filter(ev => ev.diffDays >= 0)
+        .sort((a, b) => a.diffDays - b.diffDays)
+        .slice(0, 3);
+
+      if (upcoming.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-5 text-slate-400 text-xs">
+            No upcoming exams or deadlines logged.<br>Click "Add Target" to set one!
+          </div>
+        `;
+        return;
+      }
+
+      upcoming.forEach(item => {
+        const sColor = getSubjectColorClass(item.subject);
+        const card = document.createElement('div');
+        card.className = 'p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between gap-3';
+        
+        let dayLabel = item.diffDays === 0 ? 'TODAY' : item.diffDays === 1 ? 'TOMORROW' : `${item.diffDays} DAYS LEFT`;
+
+        card.innerHTML = `
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-slate-900 dark:text-white truncate">${escapeHtml(item.title)}</p>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${sColor.bg}">${escapeHtml(item.subject)}</span>
+              <span class="text-[10px] text-slate-400">${item.date}</span>
+            </div>
+          </div>
+          <div class="shrink-0 text-right">
+            <span class="text-xs font-extrabold px-2.5 py-1 rounded-xl ${item.diffDays <= 2 ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'}">
+              ${dayLabel}
+            </span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    /* ========================================================
+       CALENDAR ENGINE
+       ======================================================== */
+    function renderCalendar() {
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      
+      document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
+      
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysContainer = document.getElementById('calendar-days');
+      daysContainer.innerHTML = '';
+
+      const events = getEvents();
+
+      // Empty lead days
+      for (let i = 0; i < firstDayIndex; i++) {
+        const blank = document.createElement('div');
+        blank.className = 'h-8';
+        daysContainer.appendChild(blank);
+      }
+
+      // Month days
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayCell = document.createElement('button');
+        const isToday = dStr === formatDateKey(new Date());
+        const isSelected = dStr === selectedDateStr;
+        const hasEvents = events.some(e => e.date === dStr);
+
+        dayCell.onclick = () => selectCalendarDate(dStr);
+        dayCell.className = `h-8 w-full rounded-xl flex flex-col items-center justify-center font-semibold text-xs relative transition ${
+          isSelected 
+            ? 'bg-brand-600 text-white shadow-md' 
+            : isToday 
+              ? 'bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-300 font-extrabold border border-brand-300' 
+              : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+        }`;
+
+        dayCell.textContent = day;
+
+        if (hasEvents) {
+          const dot = document.createElement('span');
+          dot.className = `w-1 h-1 rounded-full absolute bottom-1 ${isSelected ? 'bg-white' : 'bg-rose-500'}`;
+          dayCell.appendChild(dot);
+        }
+
+        daysContainer.appendChild(dayCell);
+      }
+
+      renderSelectedDayEvents();
+    }
+
+    function changeMonth(delta) {
+      calendarDate.setMonth(calendarDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function goToToday() {
+      calendarDate = new Date();
+      selectedDateStr = formatDateKey(new Date());
+      renderCalendar();
+    }
+
+    function selectCalendarDate(dateStr) {
+      selectedDateStr = dateStr;
+      renderCalendar();
+    }
+
+    function renderSelectedDayEvents() {
+      const events = getEvents();
+      const container = document.getElementById('selected-day-events');
+      const label = document.getElementById('selected-date-label');
+      
+      const isToday = selectedDateStr === formatDateKey(new Date());
+      label.textContent = isToday ? `Schedule for Today (${selectedDateStr})` : `Schedule for ${selectedDateStr}`;
+
+      const dayEvents = events.filter(e => e.date === selectedDateStr);
+      container.innerHTML = '';
+
+      if (dayEvents.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 py-2">No events scheduled for this day.</p>`;
+        return;
+      }
+
+      dayEvents.forEach(ev => {
+        const sColor = getSubjectColorClass(ev.subject);
+        const item = document.createElement('div');
+        item.className = 'p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs';
+        item.innerHTML = `
+          <div class="min-w-0">
+            <span class="font-bold text-slate-800 dark:text-slate-100 truncate block">${escapeHtml(ev.title)}</span>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border ${sColor.bg}">${escapeHtml(ev.subject)}</span>
+              <span class="text-[10px] text-slate-400 capitalize">${ev.type}</span>
+            </div>
+          </div>
+          <button onclick="deleteEvent('${ev.id}')" class="text-slate-400 hover:text-rose-500 p-1">
+            <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    function handleSaveEvent(e) {
+      e.preventDefault();
+      const date = document.getElementById('event-date-input').value;
+      const title = document.getElementById('event-title-input').value.trim();
+      const subject = document.getElementById('event-subject-select').value;
+      const type = document.getElementById('event-type-input').value;
+
+      if (!title || !date) return;
+
+      const events = getEvents();
+      events.push({
+        id: 'ev-' + Date.now(),
+        date: date,
+        title: title,
+        subject: subject,
+        type: type
+      });
+
+      saveEvents(events);
+      toggleModal('event-modal', false);
+      document.getElementById('event-title-input').value = '';
+      showToast('Event / Exam added!');
+    }
+
+    function deleteEvent(id) {
+      let events = getEvents();
+      events = events.filter(e => e.id !== id);
+      saveEvents(events);
+      showToast('Event deleted.');
+    }
+
+    /* ========================================================
+       WEEKLY ROUTINE TIMETABLE ENGINE
+       ======================================================== */
+    function getTimetable() {
+      return JSON.parse(localStorage.getItem(KEY_TIMETABLE)) || [];
+    }
+
+    function saveTimetable(slots) {
+      localStorage.setItem(KEY_TIMETABLE, JSON.stringify(slots));
+      renderTimetable();
+    }
+
+    function renderTimetable() {
+      const grid = document.getElementById('timetable-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const slots = getTimetable();
+
+      daysOfWeek.forEach(day => {
+        const col = document.createElement('div');
+        col.className = 'bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3 flex flex-col gap-2 min-h-[220px]';
+
+        col.innerHTML = `
+          <div class="pb-2 border-b border-slate-200 dark:border-slate-700/80 flex items-center justify-between">
+            <span class="font-bold text-xs text-slate-900 dark:text-white uppercase tracking-wider">${day.slice(0, 3)}</span>
+            <span class="text-[10px] text-slate-400 font-medium">${day}</span>
+          </div>
+          <div class="space-y-2 flex-1" id="tt-day-slots-${day}"></div>
+        `;
+
+        grid.appendChild(col);
+
+        const slotContainer = col.querySelector(`#tt-day-slots-${day}`);
+        const daySlots = slots.filter(s => s.day === day);
+
+        if (daySlots.length === 0) {
+          slotContainer.innerHTML = `<p class="text-[11px] text-slate-400 italic py-4 text-center">No slots</p>`;
+        } else {
+          daySlots.forEach(slot => {
+            const sColor = getSubjectColorClass(slot.subject);
+            const slotItem = document.createElement('div');
+            slotItem.className = 'p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm text-xs relative group';
+            slotItem.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-[10px] font-bold text-slate-500 dark:text-slate-400">${escapeHtml(slot.time)}</span>
+                <button onclick="deleteTimetableSlot('${slot.id}')" class="text-slate-400 hover:text-rose-500 opacity-60 group-hover:opacity-100 transition">
+                  <i data-lucide="x" class="w-3 h-3"></i>
+                </button>
+              </div>
+              <p class="font-bold text-slate-800 dark:text-slate-100 text-xs mt-1 truncate">${escapeHtml(slot.subject)}</p>
+              ${slot.desc ? `<p class="text-[11px] text-slate-500 truncate mt-0.5">${escapeHtml(slot.desc)}</p>` : ''}
+              <div class="w-full h-1 rounded-full mt-2 ${sColor.badge}"></div>
+            `;
+            slotContainer.appendChild(slotItem);
+          });
+        }
+      });
+
+      lucide.createIcons();
+    }
+
+    function handleSaveTimetableSlot(e) {
+      e.preventDefault();
+      const day = document.getElementById('tt-day-select').value;
+      const time = document.getElementById('tt-time-input').value.trim();
+      const subject = document.getElementById('tt-subject-select').value;
+      const desc = document.getElementById('tt-desc-input').value.trim();
+
+      if (!time) return;
+
+      const slots = getTimetable();
+      slots.push({
+        id: 'tt-' + Date.now(),
+        day,
+        time,
+        subject,
+        desc
+      });
+
+      saveTimetable(slots);
+      toggleModal('timetable-modal', false);
+      document.getElementById('tt-time-input').value = '';
+      document.getElementById('tt-desc-input').value = '';
+      showToast('Routine slot saved!');
+    }
+
+    function deleteTimetableSlot(id) {
+      let slots = getTimetable();
+      slots = slots.filter(s => s.id !== id);
+      saveTimetable(slots);
+      showToast('Slot removed.');
+    }
+
+    /* ========================================================
+       FORMULA & NOTES REVISION BANK
+       ======================================================== */
+    function getNotes() {
+      return JSON.parse(localStorage.getItem(KEY_NOTES)) || [];
+    }
+
+    function saveNotes(notes) {
+      localStorage.setItem(KEY_NOTES, JSON.stringify(notes));
+      renderNotes();
+    }
+
+    function renderNotes() {
+      const notes = getNotes();
+      const container = document.getElementById('notes-bank-container');
+      const searchQuery = (document.getElementById('note-search-input')?.value || '').toLowerCase().trim();
+      const subjectFilter = document.getElementById('note-filter-subject')?.value || 'all';
+
+      if (!container) return;
+      container.innerHTML = '';
+
+      const filtered = notes.filter(n => {
+        if (subjectFilter !== 'all' && n.subject !== subjectFilter) return false;
+        if (searchQuery && !n.title.toLowerCase().includes(searchQuery) && !n.content.toLowerCase().includes(searchQuery)) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 text-slate-400">
+            <i data-lucide="book-open" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+            <p class="text-sm font-semibold">No notes or formulas found.</p>
+            <p class="text-xs">Click "Add New Card" to store equations and summaries.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(note => {
+        const sColor = getSubjectColorClass(note.subject);
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between space-y-3';
+        
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${sColor.bg}">${escapeHtml(note.subject)}</span>
+              <button onclick="deleteNote('${note.id}')" class="text-slate-400 hover:text-rose-500 transition" title="Delete Card">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <h4 class="font-bold text-slate-900 dark:text-white text-sm mt-2">${escapeHtml(note.title)}</h4>
+            <pre class="mt-2 text-xs font-mono text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl whitespace-pre-wrap overflow-x-auto border border-slate-100 dark:border-slate-800">${escapeHtml(note.content)}</pre>
+          </div>
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+            <button onclick="copyNoteContent('${note.id}')" class="text-[11px] font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">
+              <i data-lucide="copy" class="w-3 h-3"></i> Copy
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    function handleSaveNote(e) {
+      e.preventDefault();
+      const title = document.getElementById('note-title-input').value.trim();
+      const subject = document.getElementById('note-subject-select').value;
+      const content = document.getElementById('note-content-input').value.trim();
+
+      if (!title || !content) return;
+
+      const notes = getNotes();
+      notes.unshift({
+        id: 'n-' + Date.now(),
+        title,
+        subject,
+        content
+      });
+
+      saveNotes(notes);
+      toggleModal('note-modal', false);
+      document.getElementById('note-title-input').value = '';
+      document.getElementById('note-content-input').value = '';
+      showToast('Formula card saved!');
+    }
+
+    function deleteNote(id) {
+      let notes = getNotes();
+      notes = notes.filter(n => n.id !== id);
+      saveNotes(notes);
+      showToast('Card deleted.');
+    }
+
+    function copyNoteContent(id) {
+      const note = getNotes().find(n => n.id === id);
+      if (note) {
+        const dummy = document.createElement("textarea");
+        document.body.appendChild(dummy);
+        dummy.value = note.content;
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+        showToast('Copied to clipboard!');
+      }
+    }
+
+    /* ========================================================
+       ANALYTICS & METRICS
+       ======================================================== */
+    function updateOverviewStats() {
+      const tasks = getTasks();
+      const events = getEvents();
+      const subjects = getSubjects();
+      const stats = JSON.parse(localStorage.getItem(KEY_STATS)) || { totalFocusMinutes: 0 };
+
+      const pending = tasks.filter(t => !t.completed).length;
+      const todayStr = formatDateKey(new Date());
+      const todayEvCount = events.filter(e => e.date === todayStr).length;
+
+      document.getElementById('stat-pending-tasks').textContent = pending;
+      document.getElementById('stat-today-events').textContent = todayEvCount;
+      document.getElementById('stat-subject-count').textContent = subjects.length;
+      
+      const totalMins = stats.totalFocusMinutes || 0;
+      if (totalMins >= 60) {
+        const h = Math.floor(totalMins / 60);
+        const m = totalMins % 60;
+        document.getElementById('stat-focus-time').textContent = `${h}h ${m}m`;
+      } else {
+        document.getElementById('stat-focus-time').textContent = `${totalMins}m`;
+      }
+    }
+
+    /* ========================================================
+       DATA PORTABILITY: EXPORT / IMPORT
+       ======================================================== */
+    function exportData() {
+      const exportObject = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        tasks: getTasks(),
+        events: getEvents(),
+        timetable: getTimetable(),
+        notes: getNotes(),
+        subjects: getSubjects(),
+        stats: JSON.parse(localStorage.getItem(KEY_STATS)) || {},
+        streak: JSON.parse(localStorage.getItem(KEY_STREAK)) || {}
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObject, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `studyflow_backup_${formatDateKey(new Date())}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      showToast('Backup file downloaded!');
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.tasks) localStorage.setItem(KEY_TASKS, JSON.stringify(imported.tasks));
+          if (imported.events) localStorage.setItem(KEY_EVENTS, JSON.stringify(imported.events));
+          if (imported.timetable) localStorage.setItem(KEY_TIMETABLE, JSON.stringify(imported.timetable));
+          if (imported.notes) localStorage.setItem(KEY_NOTES, JSON.stringify(imported.notes));
+          if (imported.subjects) localStorage.setItem(KEY_SUBJECTS, JSON.stringify(imported.subjects));
+          if (imported.stats) localStorage.setItem(KEY_STATS, JSON.stringify(imported.stats));
+          if (imported.streak) localStorage.setItem(KEY_STREAK, JSON.stringify(imported.streak));
+
+          renderSubjectSelectors();
+          renderTasks();
+          renderCalendar();
+          renderCountdowns();
+          renderTimetable();
+          renderNotes();
+          updateOverviewStats();
+          initStreak();
+
+          toggleModal('backup-modal', false);
+          showToast('Data restored successfully!');
+        } catch (err) {
+          showToast('Failed to parse backup JSON file.');
+          console.error(err);
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+
+  <!-- Footer -->
+<footer class="mt-16 border-t border-slate-200 dark:border-slate-800 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+  <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <p>
+      Crafted with <span class="text-rose-500">❤️</span> by Lochana Manuth
+     
+    </p>
+
+    <!-- Social / Portfolio Links -->
+    <div class="flex items-center gap-4 text-xs">
+      <a href="https://github.com/lochanamanuth" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 dark:hover:text-white transition-colors">
+        GitHub
+      </a>
+      <span>•</span>
+      <a href="https://www.linkedin.com/in/lochana-manuth/" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 dark:hover:text-white transition-colors">
+        LinkedIn
+      </a>
+      <span>•</span>
+      <a href="https://lochanamanuth.github.io" target="_blank" rel="noopener noreferrer" class="hover:text-slate-900 dark:hover:text-white transition-colors">
+        Portfolio
+      </a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
